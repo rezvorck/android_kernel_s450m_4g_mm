@@ -2,7 +2,7 @@
  *
  * Filename:
  * ---------
- *     HI545mipi_Sensor.h
+ *     OV13850mipiraw_Sensor.h
  *
  * Project:
  * --------
@@ -13,11 +13,8 @@
  *     CMOS sensor header file
  *
  ****************************************************************************/
-#ifndef _HI545MIPI_SENSOR_H
-#define _HI545MIPI_SENSOR_H
-
-#include <linux/types.h>
-#include "kd_camera_typedef.h"
+#ifndef _OV13850MIPIRAW_SENSOR_H
+#define _OV13850MIPIRAW_SENSOR_H
 
 
 typedef enum{
@@ -114,14 +111,13 @@ typedef struct imgsensor_info_struct {
     kal_uint8  i2c_addr_table[5];    //record sensor support all write id addr, only supprt 4must end with 0xff
 } imgsensor_info_struct;
 
-/* SENSOR READ/WRITE ID */
-//#define IMGSENSOR_WRITE_ID_1 (0x6c)
-//#define IMGSENSOR_READ_ID_1  (0x6d)
-//#define IMGSENSOR_WRITE_ID_2 (0x20)
-//#define IMGSENSOR_READ_ID_2  (0x21)
+typedef enum{
+ OV13850_R1A = 0,
+ OV13850_R2A,
+ OV13850_MAX,
+}OV13850_CHIP_VER_ENUM;
 
 extern int iReadRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u8 * a_pRecvData, u16 a_sizeRecvData, u16 i2cId);
 extern int iWriteRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u16 i2cId);
-extern int iWriteReg(u16 a_u2Addr , u32 a_u4Data , u32 a_u4Bytes , u16 i2cId);
 
 #endif

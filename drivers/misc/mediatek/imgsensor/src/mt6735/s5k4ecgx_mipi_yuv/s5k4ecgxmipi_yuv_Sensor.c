@@ -54,7 +54,7 @@
 #include <linux/fs.h>
 //Daniel
 //#include <linux/slab.h>
-/*#include <linux/xlog.h>*/
+#include <linux/xlog.h>
 #include <asm/atomic.h>
 //#include <asm/uaccess.h> //copy from user
 //#include <linux/miscdevice.h>
@@ -92,12 +92,12 @@
 //Sophie Add: Need to check
 static DEFINE_SPINLOCK(s5k4ecgx_mipi_drv_lock);
 
-/*static DEFINE_SPINLOCK(s5k4ecgx_mipi_rw_lock);*/
+static DEFINE_SPINLOCK(s5k4ecgx_mipi_rw_lock);
 
 
 static kal_uint32  S5K4ECGX_MIPI_sensor_pclk = 390 * 1000000;
 MSDK_SCENARIO_ID_ENUM S5K4ECGXCurrentScenarioId = MSDK_SCENARIO_ID_CAMERA_PREVIEW;
-MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT S5K4ECGX_PreviewWin[5] = {0, 0, 0, 0, 0};
+MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT S5K4ECGX_PreviewWin[5] = {0};
 
 // global
 static MSDK_SENSOR_CONFIG_STRUCT S5K4ECGXSensorConfigData;
@@ -109,7 +109,6 @@ struct S5K4ECGX_MIPI_sensor_struct S5K4ECGX_Driver;
 unsigned int S5K4ECGX_Preview_enabled = 0;
 unsigned int s5k4ec_cap_enable = 0;
 UINT32 S5K4ECGX_MIPI_GetSensorID(UINT32 *sensorID);
-void S5K4ECGX_MIPI_get_exposure_gain(void);
 
 /*
 unsigned short S5K4ECGX_MIPI_DEFAULT_AE_TABLE[32] =
@@ -267,7 +266,7 @@ UINT32 S5K4ECGX_MIPI_SetTestPatternMode(kal_bool bEnable)
 **    AF Control Start
 ***********************************************************/
 void S5K4ECGX_MIPI_set_scene_mode(UINT16 para);
-kal_bool S5K4ECGX_MIPI_set_param_wb(UINT16 para);
+BOOL S5K4ECGX_MIPI_set_param_wb(UINT16 para);
 
 
 
@@ -682,7 +681,7 @@ S5K4ECGX_MIPI_AE_Set_Window(
     unsigned int* ptr = (unsigned int*)zone_addr;
     unsigned int srcW_maxW; //source window's max width
     unsigned int srcW_maxH; //source window's max height
-    unsigned char ae_table[8][8] = {{0}};
+    unsigned char ae_table[8][8] = {0};
     unsigned int  stepX, stepY;
     unsigned char aeStateOnOriginalSet;
     x0 = *ptr       ;
@@ -1049,8 +1048,8 @@ S5K4ECGX_MIPI_AF_Set_Window(
     unsigned int* ptr = (unsigned int*)zone_addr;
     unsigned int srcW_maxW = S5K4ECGX_MIPI_AF_CALLER_WINDOW_WIDTH;
     unsigned int srcW_maxH = S5K4ECGX_MIPI_AF_CALLER_WINDOW_HEIGHT;
-    unsigned int /*af_win_idx = 1, */frameTime;
-    /*unsigned int af_resolution = 0;*/
+    unsigned int af_win_idx = 1, frameTime;
+    unsigned int af_resolution = 0;
 
     x0 = *ptr       ;
     y0 = *(ptr + 1) ;
@@ -1413,7 +1412,7 @@ S5K4ECGX_MIPI_AF_CancelFocus(void)
 S5K4ECGX_AAA_STATUS_ENUM
 S5K4ECGX_MIPI_AF_Start(S5K4ECGX_AF_MODE_ENUM mode)
 {
-    /*unsigned int af_status;*/
+    unsigned int af_status;
     unsigned int frameTime;
     //signed int loop_iter = 200;
 
@@ -1440,7 +1439,7 @@ S5K4ECGX_MIPI_AF_Start(S5K4ECGX_AF_MODE_ENUM mode)
         {
             spin_unlock(&s5k4ecgx_mipi_drv_lock);
             SENSORDB("[4EC] CAF_Start: Been at this Mode...\n");
-            return S5K4ECGX_AAA_AF_STATUS_OK;
+            return;
         }
         S5K4ECGX_Driver.afMode = S5K4ECGX_AF_MODE_CONTINUOUS;
         S5K4ECGX_Driver.afState = S5K4ECGX_AF_STATE_ENTERING;
@@ -1531,7 +1530,7 @@ S5K4ECGX_MIPI_AF_Start(S5K4ECGX_AF_MODE_ENUM mode)
     spin_unlock(&s5k4ecgx_mipi_drv_lock);
 
     Sleep(frameTime * 2); //delay 2 frames
-    return S5K4ECGX_AAA_AF_STATUS_OK;
+    return;
 }
 
 
@@ -1548,10 +1547,10 @@ S5K4ECGX_MIPI_AF_Move_to(unsigned int a_u2MovePosition)//??how many bits for ov3
 static S5K4ECGX_AAA_STATUS_ENUM
 S5K4ECGX_MIPI_AF_Get_Status(unsigned int *pFeatureReturnPara32)
 {
-    /*S5K4ECGX_AF_STATE_ENUM af_state;*/
-    /*S5K4ECGX_AF_MODE_ENUM af_Mode;*/
+    S5K4ECGX_AF_STATE_ENUM af_state;
+    S5K4ECGX_AF_MODE_ENUM af_Mode;
     unsigned int af_1stSearch_status;
-    /*unsigned int frameTime;*/
+    unsigned int frameTime;
 
     //return SENSOR_AF_FOCUSED;
 
@@ -1892,7 +1891,7 @@ static void S5K4ECGX_MIPI_SetGain(kal_uint32 iGain)
 }
 
 
-void S5K4ECGX_MIPI_get_exposure_gain(void)
+void S5K4ECGX_MIPI_get_exposure_gain()
 {
     kal_uint32 again = 0, dgain = 0, evTime = 0;
 
@@ -1945,11 +1944,11 @@ static void S5K4ECGX_MIPI_FlashTriggerCheck(unsigned int *pFeatureReturnPara32)
 
     if (NormBr > FLASH_BV_THRESHOLD)
     {
-       *pFeatureReturnPara32 = KAL_FALSE;
+       *pFeatureReturnPara32 = FALSE;
         return;
     }
 
-    *pFeatureReturnPara32 = KAL_TRUE;
+    *pFeatureReturnPara32 = TRUE;
     return;
 }
 
@@ -2068,11 +2067,11 @@ typedef enum {
 unsigned int
 jpegParserParseImage(unsigned char* srcBuf, unsigned int bufSize, unsigned int *eoiOffset)
 {
-   /*unsigned char marker[2] = {0};*/
+   unsigned char marker[2] = {0};
    unsigned char *rdPtr = srcBuf;
    unsigned char *endPtr = srcBuf + bufSize;
-   /*unsigned int   parseState = JPEG_PARSE_STATE_WAITING_FOR_SOI;*/
-   /*unsigned short curSegmentLength;*/
+   unsigned int   parseState = JPEG_PARSE_STATE_WAITING_FOR_SOI;
+   unsigned short curSegmentLength;
    unsigned int   offsetOfEncounter100Zeros = 0;
    unsigned char  array100Zeros[100] ={0};
 
@@ -2109,7 +2108,7 @@ jpegParserParseImage(unsigned char* srcBuf, unsigned int bufSize, unsigned int *
             {
                 if (!(memcmp(array100Zeros, rdPtr, 100)))
                 {
-                    /*SENSORDB("[4EC] jpegParserParseImage:C offsetOfEncounter100Zeros = 1: rdPtr=0x%p\n", rdPtr);*/
+                    SENSORDB("[4EC] jpegParserParseImage:C offsetOfEncounter100Zeros = 1: rdPtr=0x%p\n", rdPtr);
                     offsetOfEncounter100Zeros = rdPtr;
                 }
             }
@@ -9766,11 +9765,11 @@ void S5K4ECGX_MIPI_GetAutoISOValue(void)
     //   ISO 100 : 100 ~ 1FF(HEX)
     //   ISO 200 : 200 ~ 37F(HEX)
     //   ISO 400 : over 380(HEX)
-    unsigned int A_Gain, D_Gain, ISOValue;
     if (AE_ISO_AUTO != S5K4ECGX_Driver.isoSpeed)
     {
        return;
     }
+    unsigned int A_Gain, D_Gain, ISOValue;
     S5K4ECGX_write_cmos_sensor(0xFCFC, 0xD000);
     S5K4ECGX_write_cmos_sensor(0x002C, 0x7000);
     S5K4ECGX_write_cmos_sensor(0x002E, 0x2BC4);
@@ -10063,8 +10062,8 @@ static void S5K4ECGX_Preview_Mode_Setting(kal_uint8 preview_mode )
 
 UINT32 S5K4ECGX_MIPI_StopPreview(void)
 {
-/*unsigned int status = 1;*/
-/*unsigned int prev_en = 1;*/
+  unsigned int status = 1;
+  unsigned int prev_en = 1;
 
     {
       unsigned int frameTime;
@@ -10375,7 +10374,7 @@ static UINT32 S5K4ECGX_MIPI_Preview(
            //Reset AE table due to Preview Size Changed
            #if 0
            SENSORDB("[4EC] Reset AE table");
-           S5K4ECGX_MIPI_AE_Set_Window((uintptr_t)S5K4ECGX_Driver.apAEWindows,
+           S5K4ECGX_MIPI_AE_Set_Window(S5K4ECGX_Driver.apAEWindows,
                                        S5K4ECGX_IMAGE_SENSOR_PV_WIDTH_DRV,
                                        S5K4ECGX_IMAGE_SENSOR_PV_HEIGHT_DRV);
            #endif
@@ -10944,7 +10943,7 @@ static void S5K4ECGX_MIPI_AWB_Get_Status(UINT32 *pFeatureReturnPara32)
 *
 *************************************************************************/
 
-kal_bool S5K4ECGX_MIPI_set_param_wb(UINT16 para)
+BOOL S5K4ECGX_MIPI_set_param_wb(UINT16 para)
 {
 
     //This sensor need more time to balance AWB,
@@ -11948,11 +11947,10 @@ void S5K4ECGX_MIPI_GetDelayInfo(uintptr_t delayAddr)
 UINT32 S5K4ECGX_MIPI_SetMaxFramerateByScenario(
   MSDK_SCENARIO_ID_ENUM scenarioId, MUINT32 frameRate)
 {
-#if 0
     kal_uint32 pclk;
     kal_int16 dummyLine;
     kal_uint16 lineLength,frameHeight;
-
+#if 0
     SENSORDB("S5K4ECGX_MIPI_SetMaxFramerateByScenario: scenarioId = %d, frame rate = %d\n",scenarioId,frameRate);
     switch (scenarioId)
     {

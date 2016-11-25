@@ -27,8 +27,8 @@
 #include <linux/fs.h>
 #include <asm/atomic.h>
 //#include <asm/system.h>
-/*#include <linux/xlog.h>*/
-#include "kd_camera_typedef.h"
+#include <linux/xlog.h>
+
 #include "kd_camera_hw.h"
 #include "kd_imgsensor.h"
 #include "kd_imgsensor_define.h"
@@ -213,7 +213,7 @@ static imgsensor_info_struct imgsensor_info = {
 	.mclk = 24,
 	.mipi_lane_num = SENSOR_MIPI_4_LANE,
 	.i2c_addr_table = {0x20, 0x5A, 0xff},
-	.i2c_speed = 300, // i2c read/write speed
+	.i2c_speed = 400, // i2c read/write speed
 };
 
 
@@ -259,9 +259,9 @@ static SET_PD_BLOCK_INFO_T imgsensor_pd_info =
 
 static kal_uint16 read_cmos_sensor(kal_uint32 addr)
 {
+    kdSetI2CSpeed(imgsensor_info.i2c_speed); // Add this func to set i2c speed by each sensor
     kal_uint16 get_byte=0;
     char pusendcmd[2] = {(char)(addr >> 8) , (char)(addr & 0xFF) };
-    kdSetI2CSpeed(imgsensor_info.i2c_speed); // Add this func to set i2c speed by each sensor
     iReadRegI2C(pusendcmd , 2, (u8*)&get_byte, 2, imgsensor.i2c_write_id);
     return ((get_byte<<8)&0xff00)|((get_byte>>8)&0x00ff);
 }
@@ -269,31 +269,31 @@ static kal_uint16 read_cmos_sensor(kal_uint32 addr)
 
 static void write_cmos_sensor(kal_uint16 addr, kal_uint16 para)
 {
-    char pusendcmd[4] = {(char)(addr >> 8) , (char)(addr & 0xFF) ,(char)(para >> 8),(char)(para & 0xFF)};
     kdSetI2CSpeed(imgsensor_info.i2c_speed); // Add this func to set i2c speed by each sensor
+    char pusendcmd[4] = {(char)(addr >> 8) , (char)(addr & 0xFF) ,(char)(para >> 8),(char)(para & 0xFF)};
     iWriteRegI2C(pusendcmd , 4, imgsensor.i2c_write_id);
 }
 
 static kal_uint16 read_cmos_sensor_8(kal_uint16 addr)
 {
+    kdSetI2CSpeed(imgsensor_info.i2c_speed); // Add this func to set i2c speed by each sensor
     kal_uint16 get_byte=0;
     char pusendcmd[2] = {(char)(addr >> 8) , (char)(addr & 0xFF) };
-    kdSetI2CSpeed(imgsensor_info.i2c_speed); // Add this func to set i2c speed by each sensor
     iReadRegI2C(pusendcmd , 2, (u8*)&get_byte,1,imgsensor.i2c_write_id);
     return get_byte;
 }
 
 static void write_cmos_sensor_8(kal_uint16 addr, kal_uint8 para)
 {
-    char pusendcmd[4] = {(char)(addr >> 8) , (char)(addr & 0xFF) ,(char)(para & 0xFF)};
     kdSetI2CSpeed(imgsensor_info.i2c_speed); // Add this func to set i2c speed by each sensor
+    char pusendcmd[4] = {(char)(addr >> 8) , (char)(addr & 0xFF) ,(char)(para & 0xFF)};
     iWriteRegI2C(pusendcmd , 3, imgsensor.i2c_write_id);
 }
 
 
-static void set_dummy(void)
+static void set_dummy()
 {
-	  LOG_INF("dummyline = %d, dummypixels = %d ", imgsensor.dummy_line, imgsensor.dummy_pixel);
+	 LOG_INF("dummyline = %d, dummypixels = %d ", imgsensor.dummy_line, imgsensor.dummy_pixel);
     write_cmos_sensor_8(0x0104, 0x01);
     write_cmos_sensor(0x0340, imgsensor.frame_length);
     write_cmos_sensor(0x0342, imgsensor.line_length);
@@ -304,7 +304,7 @@ static void set_dummy(void)
 
 static void set_max_framerate(UINT16 framerate,kal_bool min_framelength_en)
 {
-	//kal_int16 dummy_line;
+	kal_int16 dummy_line;
 	kal_uint32 frame_length = imgsensor.frame_length;
 	//unsigned long flags;
 
@@ -335,7 +335,7 @@ static void set_max_framerate(UINT16 framerate,kal_bool min_framelength_en)
 static void write_shutter(kal_uint16 shutter)
 {
 	kal_uint16 realtime_fps = 0;
-    //kal_uint32 frame_length = 0;
+    kal_uint32 frame_length = 0;
     spin_lock(&imgsensor_drv_lock);
     if (shutter > imgsensor.min_frame_length - imgsensor_info.margin)
         imgsensor.frame_length = shutter + imgsensor_info.margin;
@@ -1537,22 +1537,21 @@ static void preview_setting(void)
 		write_cmos_sensor_8(0x021B,0x00);
 	}
 	write_cmos_sensor(0x0100,0x0100);	//smiaRegs_rw_general_setup // Stream on
-    /*EVB seldom output fail issue. Need retry*/
-	while(retry<10)
-	{if(read_cmos_sensor_8(0x0005)==0xff)
-		{
-		  mdelay(10);
-		  retry++;
-		  LOG_INF("Sensor has not output\n");
-		}
-	 else
-		{
+//		while(retry<10)
+//			{if(read_cmos_sensor_8(0x0005)==0xff)
+//				{
+//				  mdelay(10);
+//				  retry++;
+//				  LOG_INF("Sensor has not output\n");
+//				}
+//			 else
+//				{
 
-			retry=0;
-			LOG_INF("Sensor has output\n");
-			break;
-		}
-	}
+//					retry=0;
+//					LOG_INF("Sensor has output\n");
+//					break;
+//				}
+//			}
 
 //	write_cmos_sensor(0x3A70,0x0000);
 //	write_cmos_sensor(0x3A72,0x0000);
@@ -1588,10 +1587,10 @@ static void preview_setting(void)
 }	/*	preview_setting  */
 
 
-static void normal_capture_setting(void)
-{    
-	int retry=0;
+static void normal_capture_setting()
+{
 	LOG_INF("E! ");
+	int retry=0;
 
 	//====================================================
 //2P8XX
@@ -1790,7 +1789,7 @@ static void normal_capture_setting(void)
 
 }
 
-static void pip_capture_setting(void)
+static void pip_capture_setting()
 {
 	int retry=0;
     LOG_INF( "S5K2P8 PIP setting Enter!");
@@ -1948,7 +1947,7 @@ static void pip_capture_setting(void)
 
 }
 
-static void pip_capture_15fps_setting(void)
+static void pip_capture_15fps_setting()
 {
     int retry=0;
     LOG_INF( "S5K2P8 PIP 15FPS setting Enter!");
@@ -2081,7 +2080,7 @@ static void normal_video_setting(kal_uint16 currefps)
 	normal_capture_setting();
 
 }
-static void hs_video_setting(void)
+static void hs_video_setting()
 {
 int retry=0;
 	LOG_INF("E");
@@ -2335,7 +2334,7 @@ while(retry<10)
 	   }
 }
 
-static void slim_video_setting(void)
+static void slim_video_setting()
 {
 	LOG_INF("E");
 	//$MV1[mclk:24,width:1328,height:748,format:MIPI_RAW10,mipi_lane:4,mipi_hssettle:19,pvi_pclk_inverse:0]
@@ -3080,7 +3079,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	UINT32 *feature_return_para_32=(UINT32 *) feature_para;
 	UINT32 *feature_data_32=(UINT32 *) feature_para;
     unsigned long long *feature_data=(unsigned long long *) feature_para;
-//    unsigned long long *feature_return_para=(unsigned long long *) feature_para;
+    unsigned long long *feature_return_para=(unsigned long long *) feature_para;
 
 	SENSOR_WINSIZE_INFO_STRUCT *wininfo;
     SET_PD_BLOCK_INFO_T *PDAFinfo;
@@ -3141,7 +3140,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
             get_default_framerate_by_scenario((MSDK_SCENARIO_ID_ENUM)*(feature_data), (MUINT32 *)(uintptr_t)(*(feature_data+1)));
 			break;
         case SENSOR_FEATURE_GET_PDAF_DATA: /* For PDAF EEPROM Read Information*/
-		read_eeprom((kal_uint16 )(*feature_data),(char*)(uintptr_t)(*(feature_data+1)),(kal_uint32)(*(feature_data+2)));
+			read_eeprom((kal_uint16 )(*feature_data),(char*)(uintptr_t)(*(feature_data+1)),(kal_uint32)(*(feature_data+2)));
 			break;
 		case SENSOR_FEATURE_SET_TEST_PATTERN:
             set_test_pattern_mode((BOOL)*feature_data);
@@ -3204,7 +3203,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
             }
             break;
         case SENSOR_FEATURE_GET_SENSOR_PDAF_CAPACITY:
-            LOG_INF("SENSOR_FEATURE_GET_SENSOR_PDAF_CAPACITY scenarioId:%d\n", (UINT32)*feature_data);
+            LOG_INF("SENSOR_FEATURE_GET_SENSOR_PDAF_CAPACITY scenarioId:%d\n", *feature_data);
             //PDAF capacity enable or not, 2p8 only full size support PDAF
             switch (*feature_data) {
                 case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:

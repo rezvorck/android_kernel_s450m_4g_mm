@@ -108,6 +108,7 @@ NSFeature :  : RAWSensorInfo < _id >  :  : getFlickerPara \
 #define IMX214_SENSOR_ID                        0x0214
 #define IMX179_SENSOR_ID                        0x0179
 #define IMX178_SENSOR_ID                        0x0178
+#define IMX145_SENSOR_ID                        0x0145
 #define IMX135_SENSOR_ID                        0x0135
 #define IMX132MIPI_SENSOR_ID                    0x0132
 #define IMX119_SENSOR_ID                        0x0119
@@ -272,6 +273,7 @@ NSFeature :  : RAWSensorInfo < _id >  :  : getFlickerPara \
 #define SENSOR_DRVNAME_IMX214_MIPI_RAW          "imx214mipiraw"
 #define SENSOR_DRVNAME_IMX179_MIPI_RAW          "imx179mipiraw"
 #define SENSOR_DRVNAME_IMX178_MIPI_RAW          "imx178mipiraw"
+#define SENSOR_DRVNAME_IMX145_MIPI_RAW          "imx145mipiraw"
 #define SENSOR_DRVNAME_IMX135_MIPI_RAW          "imx135mipiraw"
 #define SENSOR_DRVNAME_IMX132_MIPI_RAW          "imx132mipiraw"
 #define SENSOR_DRVNAME_IMX119_MIPI_RAW          "imx119mipiraw"

@@ -27,8 +27,8 @@
 #include <linux/fs.h>
 #include <asm/atomic.h>
 //#include <asm/system.h>
-/*#include <linux/xlog.h>*/
-#include "kd_camera_typedef.h"
+#include <linux/xlog.h>
+
 #include "kd_camera_hw.h"
 #include "kd_imgsensor.h"
 #include "kd_imgsensor_define.h"
@@ -1534,7 +1534,7 @@ static kal_uint32 control(MSDK_SCENARIO_ID_ENUM scenario_id, MSDK_SENSOR_EXPOSUR
 
 
 static kal_uint32 set_video_mode(UINT16 framerate)
-{//
+{
     LOG_INF("framerate = %d\n ", framerate);
     // SetVideoMode Function should fix framerate
     if (framerate == 0)

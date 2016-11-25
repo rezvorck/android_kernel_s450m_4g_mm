@@ -40,39 +40,7 @@
 //#define FPGA_TEST
 //#define __CAPTURE_JPEG_OUTPUT__
 
-#ifndef kal_uint32
-  #define unsigned int    kal_uint32;
-#endif
 
-#ifndef UINT32
-  #define UINT32    kal_uint32;
-#endif
-
-#ifndef kal_uint16
-  #define unsigned short    kal_uint16;
-#endif
-
-#ifndef kal_uint8
-  #define unsigned char    kal_uint8;
-#endif
-
-#ifndef UINT16
-  #define UINT16    kal_uint16;
-#endif
-
-#ifndef UINT8
-  #define UINT8    kal_uint8;
-#endif
-
-
-
-
-#ifndef kal_bool
-typedef enum {
-   KAL_FALSE = 0,
-   KAL_TRUE  = 1,
-} kal_bool;
-#endif
 
 typedef enum S5K4ECGX_CAMCO_MODE
 {
@@ -91,8 +59,8 @@ typedef enum S5K4ECGX_CAMCO_MODE
 #define S5K4ECGX_SENSOR_ID                     0x4EC0
 
 /* SENSOR FULL/PV SIZE */
-#define S5K4ECGX_IMAGE_SENSOR_FULL_WIDTH_DRV   1280//1280
-#define S5K4ECGX_IMAGE_SENSOR_FULL_HEIGHT_DRV  960//960
+#define S5K4ECGX_IMAGE_SENSOR_FULL_WIDTH_DRV   2560
+#define S5K4ECGX_IMAGE_SENSOR_FULL_HEIGHT_DRV  1920
 #define S5K4ECGX_IMAGE_SENSOR_PV_WIDTH_DRV     1280
 #define S5K4ECGX_IMAGE_SENSOR_PV_HEIGHT_DRV    960
 #define S5K4ECGX_IMAGE_SENSOR_PV_WIDTH         (S5K4ECGX_IMAGE_SENSOR_PV_WIDTH_DRV)
@@ -108,8 +76,8 @@ typedef enum S5K4ECGX_CAMCO_MODE
 #define S5K4ECGX_FULL_X_START                   0
 #define S5K4ECGX_FULL_Y_START                   1
 #else
-#define S5K4ECGX_PV_X_START                     0    
-#define S5K4ECGX_PV_Y_START                     0    
+#define S5K4ECGX_PV_X_START                     0
+#define S5K4ECGX_PV_Y_START                     0
 #define S5K4ECGX_FULL_X_START                   0
 #define S5K4ECGX_FULL_Y_START                   0
 #endif
@@ -315,14 +283,14 @@ struct S5K4ECGX_MIPI_sensor_struct
 
 typedef struct
 {
-    kal_uint32  iSensorVersion;
-    kal_uint32  iNightMode;
-    kal_uint32  iWB;
-    kal_uint32  iEffect;
-    kal_uint32  iEV;
-    kal_uint32  iBanding;
-    kal_uint32  iMirror;
-    kal_uint32  iFrameRate;
+    UINT16  iSensorVersion;
+    UINT16  iNightMode;
+    UINT16  iWB;
+    UINT16  iEffect;
+    UINT16  iEV;
+    UINT16  iBanding;
+    UINT16  iMirror;
+    UINT16  iFrameRate;
 } S5K4ECYX_MIPIStatus;
 S5K4ECYX_MIPIStatus S5K4ECYX_MIPICurrentStatus;
 

@@ -27,7 +27,7 @@
 #include <linux/fs.h>
 #include <asm/atomic.h>
 //#include <asm/system.h>
-/*#include <linux/xlog.h>*/
+#include <linux/xlog.h>
 
 #include "kd_camera_hw.h"
 #include "kd_imgsensor.h"
@@ -49,7 +49,7 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 static imgsensor_info_struct imgsensor_info = { 
 	.sensor_id = 0x2680, //OV2680MIPI_SENSOR_ID,  /*sensor_id = 0x2680*/ //record sensor id defined in Kd_imgsensor.h
 	
-	.checksum_value = 0x92dcaca1, //checksum value for Camera Auto Test, 0x64d5ee2e
+	.checksum_value = 0x64d5ee2e, //checksum value for Camera Auto Test
 	
 	.pre = {
 		.pclk = 66000000,				//record different mode's pclk
@@ -195,7 +195,7 @@ static void write_cmos_sensor(kal_uint32 addr, kal_uint32 para)
 	iWriteRegI2C(pu_send_cmd, 3, imgsensor.i2c_write_id);
 }
 
-static void set_dummy(void)
+static void set_dummy()
 {
 	LOG_INF("dummyline = %d, dummypixels = %d \n", imgsensor.dummy_line, imgsensor.dummy_pixel);
 	/* you can set dummy by imgsensor.dummy_line and imgsensor.dummy_pixel, or you can set dummy by imgsensor.frame_length and imgsensor.line_length */
@@ -212,12 +212,13 @@ static void set_dummy(void)
   
 }	/*	set_dummy  */
 
-static kal_uint32 return_sensor_id(void)
+static kal_uint32 return_sensor_id()
 {
     return ((read_cmos_sensor(0x300A) << 8) | read_cmos_sensor(0x300B));
 }
 static void set_max_framerate(UINT16 framerate,kal_bool min_framelength_en)
 {
+	kal_int16 dummy_line;
 	kal_uint32 frame_length = imgsensor.frame_length;
 	//unsigned long flags;
 
@@ -249,6 +250,7 @@ static void set_shutter(kal_uint16 shutter)
 {
     unsigned long flags;
 	kal_uint16 realtime_fps = 0;
+	kal_uint32 frame_length = 0;
     spin_lock_irqsave(&imgsensor_drv_lock, flags);
     imgsensor.shutter = shutter;
     spin_unlock_irqrestore(&imgsensor_drv_lock, flags);
@@ -301,7 +303,7 @@ static void set_shutter(kal_uint16 shutter)
 }	/*	set_shutter */
 
 
-#if 0
+
 static kal_uint16 gain2reg(const kal_uint16 gain)
 {
 	
@@ -312,7 +314,6 @@ static kal_uint16 gain2reg(const kal_uint16 gain)
 	*/
 	return (kal_uint16)reg_gain;
 }
-#endif
 
 /*************************************************************************
 * FUNCTION
@@ -402,7 +403,6 @@ static void ihdr_write_shutter_gain(kal_uint16 le, kal_uint16 se, kal_uint16 gai
 
 }
 
-#if 0
 static void set_mirror_flip(kal_uint8 image_mirror)
 {
 	LOG_INF("image_mirror = %d\n", image_mirror);
@@ -441,7 +441,6 @@ static void set_mirror_flip(kal_uint8 image_mirror)
 	}
 
 }
-#endif
 
 /*************************************************************************
 * FUNCTION
@@ -509,7 +508,7 @@ static void preview_setting(void)
 	write_cmos_sensor(0x4009, 0x09);
 	write_cmos_sensor(0x4837, 0x18);
 	write_cmos_sensor(0x0100, 0x01);
-	mdelay(5);
+	mdelay(60);
 }
 	/*	preview_setting  */
 
@@ -524,7 +523,7 @@ static void sensor_init(void)
    
 	/* Reset */
 	write_cmos_sensor(0x0103, 0x01);
-	mdelay(5);
+	mdelay(50);
 	write_cmos_sensor(0x3002, 0x00);
 	write_cmos_sensor(0x3016, 0x1c);
 	write_cmos_sensor(0x3018, 0x44);
@@ -602,7 +601,7 @@ static void sensor_init(void)
 	
 	write_cmos_sensor(0x0100, 0x01);
 
-	mdelay(5);
+	mdelay(40);
 	//preview_setting();
 	
 }	/*	sensor_init  */
@@ -621,7 +620,7 @@ static void normal_video_setting(kal_uint16 currefps)
 	LOG_INF("E! currefps:%d\n",currefps);
 	preview_setting();
 }
-static void hs_video_setting(void)
+static void hs_video_setting()
 {
 	LOG_INF("E\n");
 		
@@ -667,10 +666,10 @@ static void hs_video_setting(void)
 	write_cmos_sensor(0x4009, 0x09);
 	write_cmos_sensor(0x4837, 0x18);
 	write_cmos_sensor(0x0100, 0x01);
-	mdelay(5);
+	mdelay(60);
 }
 
-static void slim_video_setting(void)
+static void slim_video_setting()
 {
 	LOG_INF("E\n");
 	preview_setting();
@@ -894,7 +893,7 @@ static kal_uint32 capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
     }
 	spin_unlock(&imgsensor_drv_lock);
 	capture_setting(imgsensor.current_fps);
-	mdelay(10);
+	mdelay(100);
 	return ERROR_NONE;
 }	/* capture() */
 static kal_uint32 normal_video(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
@@ -1285,6 +1284,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	UINT32 *feature_return_para_32=(UINT32 *) feature_para;
 	UINT32 *feature_data_32=(UINT32 *) feature_para;
 	unsigned long long *feature_data=(unsigned long long *) feature_para;
+    unsigned long long *feature_return_para=(unsigned long long *) feature_para;
 
 	SENSOR_WINSIZE_INFO_STRUCT *wininfo;	
 	MSDK_SENSOR_REG_INFO_STRUCT *sensor_reg_data=(MSDK_SENSOR_REG_INFO_STRUCT *) feature_para;
@@ -1348,19 +1348,19 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 			*feature_para_len=4;							 
 			break;				
 		case SENSOR_FEATURE_SET_FRAMERATE:
-//			LOG_INF("current fps :%d\n",  (UINT32)*feature_data);
+			LOG_INF("current fps :%d\n",  (UINT32)*feature_data);
 			spin_lock(&imgsensor_drv_lock);
 			imgsensor.current_fps = *feature_data;
 			spin_unlock(&imgsensor_drv_lock);		
 			break;
 		case SENSOR_FEATURE_SET_HDR:
-//			LOG_INF("ihdr enable :%d\n", (BOOL)*feature_data);
+			LOG_INF("ihdr enable :%d\n", (BOOL)*feature_data);
 			spin_lock(&imgsensor_drv_lock);
 			imgsensor.ihdr_en = (bool)*feature_data;
 			spin_unlock(&imgsensor_drv_lock);		
 			break;
 		case SENSOR_FEATURE_GET_CROP_INFO:
-//			LOG_INF("SENSOR_FEATURE_GET_CROP_INFO scenarioId:%d\n", (UINT32)*feature_data);
+			LOG_INF("SENSOR_FEATURE_GET_CROP_INFO scenarioId:%d\n", (UINT32)*feature_data);
 			wininfo = (SENSOR_WINSIZE_INFO_STRUCT *)(uintptr_t)(*(feature_data+1));
 		
 			switch (*feature_data_32) {
@@ -1382,7 +1382,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 					break;
 			}
 		case SENSOR_FEATURE_SET_IHDR_SHUTTER_GAIN:
-//			LOG_INF("SENSOR_SET_SENSOR_IHDR LE=%d, SE=%d, Gain=%d\n",(UINT16)*feature_data,(UINT16)*(feature_data+1),(UINT16)*(feature_data+2)); 
+			LOG_INF("SENSOR_SET_SENSOR_IHDR LE=%d, SE=%d, Gain=%d\n",(UINT16)*feature_data,(UINT16)*(feature_data+1),(UINT16)*(feature_data+2)); 
 			ihdr_write_shutter_gain((UINT16)*feature_data,(UINT16)*(feature_data+1),(UINT16)*(feature_data+2));	
 			break;
 		default:

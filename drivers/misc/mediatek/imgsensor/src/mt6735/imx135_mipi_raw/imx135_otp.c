@@ -32,7 +32,7 @@ After finishing the OTP written, we will provide you the golden_rg and golden_bg
 
 #include "imx135mipiraw_Sensor.h"
 
-/*#include <linux/xlog.h>*/
+#include <linux/xlog.h>
 #define PFX "imx135_otp"
 #define LOG_INF(format, args...)    pr_debug(PFX "[%s] " format, __FUNCTION__, ##args)
 
@@ -596,10 +596,7 @@ bool otp_update(BYTE update_sensor_otp_awb, BYTE update_sensor_otp_lsc)
     BYTE MID = 0x00;
     int i;
 
-    LOG_INF("update_sensor_otp_awb: %d, update_sensor_otp_lsc: %d _otp_awb_set %d _otp_lsc_set%d\n",
-		update_sensor_otp_awb, update_sensor_otp_lsc, _otp_awb_set, _otp_lsc_set);
-    if(_otp_awb_set ==1 &&_otp_lsc_set ==1)
-		return 1;
+    LOG_INF("update_sensor_otp_awb: %d, update_sensor_otp_lsc: %d\n", update_sensor_otp_awb, update_sensor_otp_lsc );
 
     for(i=0;i<3;i++)
     {
@@ -628,25 +625,24 @@ bool otp_update(BYTE update_sensor_otp_awb, BYTE update_sensor_otp_lsc)
     }
 
     if(0 != update_sensor_otp_awb && _otp_awb_set == 0) {
-    	spin_lock(&imx135_otp_lock);
-        _otp_awb_set = 1;
-        spin_unlock(&imx135_otp_lock);
         if(otp_wb_update(zone)){
-	    return 0;
+  		    spin_lock(&imx135_otp_lock);
+            _otp_awb_set = 1;
+            spin_unlock(&imx135_otp_lock);
         }
     }
 
 
     if(0 != update_sensor_otp_lsc && _otp_lsc_set == 0)
     {
-        spin_lock(&imx135_otp_lock);
-        _otp_lsc_set = 1;
-     	spin_unlock(&imx135_otp_lock);
         if(!otp_lenc_update())
         {
             LOG_INF("OTP Update LSC Err\n");
             return 0;
         }
+		spin_lock(&imx135_otp_lock);
+        _otp_lsc_set = 1;
+     	spin_unlock(&imx135_otp_lock);
     }
     return 1;
 }
