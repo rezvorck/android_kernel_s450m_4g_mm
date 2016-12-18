@@ -89,6 +89,8 @@ char *leds_name[MT65XX_LED_TYPE_TOTAL] = {
 };
 
 struct cust_mt65xx_led *pled_dtsi = NULL;
+
+struct nled_setting nled_tmp_setting = { 0, 0, 0 };
 /****************************************************************************
  * DEBUG MACROS
  ***************************************************************************/
@@ -958,7 +960,6 @@ int mt_mt65xx_blink_set(struct led_classdev *led_cdev,
 	struct mt65xx_led_data *led_data =
 	    container_of(led_cdev, struct mt65xx_led_data, cdev);
 	static int got_wake_lock;
-	struct nled_setting nled_tmp_setting = { 0, 0, 0 };
 
 	/* only allow software blink when delay_on or delay_off changed */
 	if (*delay_on != led_data->delay_on

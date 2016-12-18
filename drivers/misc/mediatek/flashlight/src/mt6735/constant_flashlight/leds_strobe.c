@@ -74,12 +74,22 @@ static struct work_struct workTimeOut;
 /* #define FLASH_GPIO_ENF GPIO12 */
 /* #define FLASH_GPIO_ENT GPIO13 */
 
+#include <mt-plat/mt_pwm.h>
+#include <mt-plat/upmu_common.h>
+#include "../../../../leds/mt6735/leds_sw.h"
+#include "../../../../leds/mt6735/leds_hal.h"
+#include "../../../../video/include/ddp_pwm.h"
+#include "../../../../video/include/mtkfb.h"
+
 #include "../../../../include/mt-plat/mt_gpio_core.h"
 #include "../../../../include/mt-plat/mt_gpio.h"
 #include "../../../../video/include/mtkfb.h"
 #include <mt-plat/mt_gpio.h>
 #include "../../../../ssw/inc/ssw.h"
 
+extern int mt_brightness_set_pmic(enum mt65xx_led_pmic pmic_type, u32 level, u32 div);
+extern int mt_led_blink_pmic(enum mt65xx_led_pmic pmic_type, struct nled_setting *led);
+extern struct nled_setting nled_tmp_setting;
 
 /*****************************************************************************
 Functions
@@ -96,6 +106,7 @@ int FL_Enable(void)
 {
 	
 	#define FLASH_GPIO (43)
+	mt_led_blink_pmic(1, &nled_tmp_setting);
 	mt_set_gpio_mode(FLASH_GPIO, 0);
 	mt_set_gpio_dir(FLASH_GPIO, GPIO_DIR_OUT);
 	mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ONE);
@@ -106,7 +117,8 @@ int FL_Enable(void)
 
 int FL_Disable(void)
 {
-	
+
+	mt_brightness_set_pmic(1, 0, 0);
 	mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ZERO);
 	return 0;
 }
