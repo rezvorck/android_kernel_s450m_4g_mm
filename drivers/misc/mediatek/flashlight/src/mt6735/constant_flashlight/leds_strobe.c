@@ -39,15 +39,7 @@
 /* ANDROID_LOG_VERBOSE */
 
 #define TAG_NAME "[leds_strobe.c]"
-#define PK_DBG_NONE(fmt, arg...)    do {} while (0)
-#define PK_DBG_FUNC(fmt, arg...)    pr_debug(TAG_NAME "%s: " fmt, __func__ , ##arg)
-
-/*#define DEBUG_LEDS_STROBE*/
-#ifdef DEBUG_LEDS_STROBE
-#define PK_DBG PK_DBG_FUNC
-#else
-#define PK_DBG(a, ...)
-#endif
+#define PK_DBG(fmt, arg...)    pr_debug(TAG_NAME "%s: " fmt, __func__ , ##arg)
 
 /******************************************************************************
  * local variables
@@ -81,15 +73,12 @@ static struct work_struct workTimeOut;
 #include "../../../../video/include/ddp_pwm.h"
 #include "../../../../video/include/mtkfb.h"
 
+
 #include "../../../../include/mt-plat/mt_gpio_core.h"
 #include "../../../../include/mt-plat/mt_gpio.h"
 #include "../../../../video/include/mtkfb.h"
 #include <mt-plat/mt_gpio.h>
 #include "../../../../ssw/inc/ssw.h"
-
-extern int mt_brightness_set_pmic(enum mt65xx_led_pmic pmic_type, u32 level, u32 div);
-extern int mt_led_blink_pmic(enum mt65xx_led_pmic pmic_type, struct nled_setting *led);
-extern struct nled_setting nled_tmp_setting;
 
 /*****************************************************************************
 Functions
@@ -104,7 +93,7 @@ static void work_timeOutFunc(struct work_struct *data);
 
 int FL_Enable(void)
 {
-	
+	PK_DBG(" FL_Enable line=%d\n", __LINE__);
 	#define FLASH_GPIO (43)
 	mt_led_blink_pmic(1, &nled_tmp_setting);
 	mt_set_gpio_mode(FLASH_GPIO, 0);
@@ -117,7 +106,7 @@ int FL_Enable(void)
 
 int FL_Disable(void)
 {
-
+	PK_DBG(" FL_Disable line=%d\n", __LINE__);
 	mt_brightness_set_pmic(1, 0, 0);
 	mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ZERO);
 	return 0;
@@ -135,13 +124,14 @@ int FL_dim_duty(kal_uint32 duty)
 
 int FL_Init(void)
 {
-
+	PK_DBG(" FL_Init line=%d\n", __LINE__);
 	return 0;
 }
 
 
 int FL_Uninit(void)
 {
+	PK_DBG(" FL_Uninit line=%d\n", __LINE__);
 	FL_Disable();
 	return 0;
 }

@@ -94,12 +94,8 @@ struct nled_setting nled_tmp_setting = { 0, 0, 0 };
 /****************************************************************************
  * DEBUG MACROS
  ***************************************************************************/
-static int debug_enable_led_hal = 1;
-#define LEDS_DEBUG(format, args...) do { \
-	if (debug_enable_led_hal) {	\
-		pr_debug("[LED]"format, ##args);\
-	} \
-} while (0)
+
+#define LEDS_DEBUG(format, args...) pr_debug("[LED]"format, ##args);
 
 /*****************PWM *************************************************/
 #define PWM_DIV_NUM 8
@@ -523,9 +519,8 @@ int mt_led_blink_pmic(enum mt65xx_led_pmic pmic_type, struct nled_setting *led)
 
 	LEDS_DEBUG("led_blink_pmic: pmic_type=%d\n", pmic_type);
 
-	if ((pmic_type != MT65XX_LED_PMIC_NLED_ISINK0
-	     && pmic_type != MT65XX_LED_PMIC_NLED_ISINK1)
-	    || led->nled_mode != NLED_BLINK) {
+	if (pmic_type != MT65XX_LED_PMIC_NLED_ISINK0
+	     && pmic_type != MT65XX_LED_PMIC_NLED_ISINK1) {
 		return -1;
 	}
 
