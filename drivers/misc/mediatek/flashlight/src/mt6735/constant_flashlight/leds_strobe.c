@@ -39,7 +39,7 @@
 /* ANDROID_LOG_VERBOSE */
 
 #define TAG_NAME "[leds_strobe.c]"
-#define PK_DBG(fmt, arg...)    pr_debug(TAG_NAME "%s: " fmt, __func__ , ##arg)
+#define PK_DBG(fmt, arg...)    //pr_debug(TAG_NAME "%s: " fmt, __func__ , ##arg)
 
 /******************************************************************************
  * local variables
@@ -94,11 +94,11 @@ static void work_timeOutFunc(struct work_struct *data);
 int FL_Enable(void)
 {
 	PK_DBG(" FL_Enable line=%d\n", __LINE__);
-	#define FLASH_GPIO (43)
+	//#define FLASH_GPIO (43)
 	mt_led_blink_pmic(1, &nled_tmp_setting);
-	mt_set_gpio_mode(FLASH_GPIO, 0);
-	mt_set_gpio_dir(FLASH_GPIO, GPIO_DIR_OUT);
-	mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ONE);
+	//mt_set_gpio_mode(FLASH_GPIO, 0);
+	//mt_set_gpio_dir(FLASH_GPIO, GPIO_DIR_OUT);
+	//mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ONE);
 	return 0;
 }
 
@@ -108,7 +108,7 @@ int FL_Disable(void)
 {
 	PK_DBG(" FL_Disable line=%d\n", __LINE__);
 	mt_brightness_set_pmic(1, 0, 0);
-	mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ZERO);
+	//mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ZERO);
 	return 0;
 }
 

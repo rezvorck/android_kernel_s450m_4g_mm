@@ -15,7 +15,6 @@
 #include <linux/of_irq.h>
 
 //#include "flash_on.h"
-//#define TPD_PROXIMITY
 #define FTS_GESTRUE
 //#define TPD_CLOSE_POWER_IN_SLEEP
 
@@ -26,6 +25,8 @@
 #endif
 
 #include "ft5x0x_util.h"
+
+
 
 extern struct tpd_device *tpd;
 extern int tpd_v_magnify_x;
@@ -64,6 +65,15 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		}
 		TPD_DMESG("I2C transfer error, line: %d\n", __LINE__);
 	};
+
+#ifdef TPD_PROXIMITY
+	struct hwmsen_object obj_ps;
+	obj_ps.polling = 0;	/* 0--interrupt mode;1--polling mode; */
+	obj_ps.sensor_operate = tpd_ps_operate;
+	s32 err_hw = hwmsen_attach(ID_PROXIMITY, &obj_ps);
+	if (err_hw)
+		TPD_DEBUG("hwmsen attach fail, return:%d.", err_hw);
+#endif
 
 	return -1;
 }
@@ -201,4 +211,3 @@ static void __exit tpd_driver_exit(void)
 
 module_init(tpd_driver_init);
 module_exit(tpd_driver_exit);
-

@@ -1,5 +1,6 @@
 ccflags-y += -Wno-unused-variable -g
 ccflags-y += -Wno-unused-function -g
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/hwmon/include
 
 # Linux driver folder
 ccflags-y += -I$(srctree)/drivers/input/touchscreen/mediatek/ft5x0x/include/

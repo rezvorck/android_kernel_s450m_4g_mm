@@ -7,13 +7,36 @@ extern struct tpd_device *tpd;
 */
 #define TPD_PIN_RST 	(0)
 #define TPD_PIN_EINT 	(1)
+#define TPD_PROXIMITY
 
 static void ft5x0x_set_rst(bool bSet, int nDelay)
 {
 	tpd_gpio_output(TPD_PIN_RST, bSet?1:0);
 	if (nDelay) mdelay(nDelay);
 }
+#ifdef TPD_PROXIMITY
+#include "../../../../misc/mediatek/alsps/inc/alsps.h"
+#include <hwmsensor.h>
+#include <hwmsen_dev.h>
+//#include <sensors_io.h>
+#include <hwmsen_helper.h>
+//#include <linux/sensors_io.h>
+#endif
+#ifdef TPD_PROXIMITY
 
+#define APS_ERR(fmt,arg...)           	printk("<<proximity>> "fmt"\n",##arg)
+
+#define TPD_PROXIMITY_DEBUG(fmt,arg...) printk("<<proximity>> "fmt"\n",##arg)
+
+#define TPD_PROXIMITY_DMESG(fmt,arg...) printk("<<proximity>> "fmt"\n",##arg)
+
+static u8 tpd_proximity_flag 			= 0;
+
+static u8 tpd_proximity_flag_one 		= 0; //add for tpd_proximity by wangdongfang
+
+static u8 tpd_proximity_detect 		= 1;//0-->close ; 1--> far away
+
+#endif
 /***********************************************
 //	SET POWER TOUCHPANEL
 */
@@ -114,6 +137,117 @@ static int tpd_touchinfo(struct i2c_client* i2c_client, struct touch_info *cinfo
 	return true;
 };
 
+#ifdef TPD_PROXIMITY
+int tpd_read_ps(void)
+{
+	tpd_proximity_detect;
+	return 0;
+}
+
+static int tpd_get_ps_value(void)
+{
+	return tpd_proximity_detect;
+}
+
+static int tpd_enable_ps(int enable)
+{
+	u8 state;
+	int ret = -1;
+
+	i2c_smbus_read_i2c_block_data(i2c_client, 0xB0, 1, &state);
+	//printk("[proxi_fts]read: 999 0xb0's value is 0x%02X\n", state);
+
+	if (enable){
+		state |= 0x01;
+		tpd_proximity_flag = 1;
+		TPD_PROXIMITY_DEBUG("[proxi_fts]ps function is on\n");
+	}else{
+		state &= 0x00;
+		tpd_proximity_flag = 0;
+		TPD_PROXIMITY_DEBUG("[proxi_fts]ps function is off\n");
+	}
+
+	ret = i2c_smbus_write_i2c_block_data(i2c_client, 0xB0, 1, &state);
+	TPD_PROXIMITY_DEBUG("[proxi_fts]write: 0xB0's value is 0x%02X\n", state);
+	return 0;
+}
+
+int tpd_ps_operate(void* self, uint32_t command, void* buff_in, int size_in,
+
+		void* buff_out, int size_out, int* actualout)
+{
+	int err = 0;
+	int value;
+	struct hwm_sensor_data *sensor_data;
+	TPD_DEBUG("[proxi_fts]command = 0x%02X\n", command);
+
+	switch (command)
+	{
+		case SENSOR_DELAY:
+			if((buff_in == NULL) || (size_in < sizeof(int)))
+			{
+				APS_ERR("Set delay parameter error!\n");
+				err = -EINVAL;
+			}
+			// Do nothing
+			break;
+		case SENSOR_ENABLE:
+			if((buff_in == NULL) || (size_in < sizeof(int)))
+			{
+				APS_ERR("Enable sensor parameter error!\n");
+				err = -EINVAL;
+			}
+			else
+			{
+				value = *(int *)buff_in;
+				if(value)
+				{
+					if((tpd_enable_ps(1) != 0))
+					{
+						APS_ERR("enable ps fail: %d\n", err);
+						return -1;
+					}
+				}
+				else
+				{
+					if((tpd_enable_ps(0) != 0))
+					{
+						APS_ERR("disable ps fail: %d\n", err);
+						return -1;
+					}
+				}
+			}
+			break;
+		case SENSOR_GET_DATA:
+			if((buff_out == NULL) || (size_out< sizeof(struct hwm_sensor_data)))
+			{
+				APS_ERR("get sensor data parameter error!\n");
+				err = -EINVAL;
+			}
+			else
+			{
+				sensor_data = (struct hwm_sensor_data *)buff_out;
+				if((err = tpd_read_ps()))
+				{
+					err = -1;;
+				}
+				else
+				{
+					sensor_data->values[0] = tpd_get_ps_value();
+					TPD_PROXIMITY_DEBUG("huang sensor_data->values[0] 1082 = %d\n", sensor_data->values[0]);
+					sensor_data->value_divide = 1;
+					sensor_data->status = SENSOR_STATUS_ACCURACY_MEDIUM;
+				}
+			}
+			break;
+		default:
+			APS_ERR("proxmy sensor operate function no this parameter %d!\n", command);
+			err = -1;
+			break;
+	}
+	return err;
+}
+#endif
 /***********************************************
 //	CHECK KEYS
 */
@@ -151,6 +285,12 @@ static void tpd_up(int x, int y)
 
 static int touch_event_handler(void *unused)
 {
+	#ifdef TPD_PROXIMITY
+	int err;
+	struct hwm_sensor_data sensor_data;
+	u8 proximity_status;
+	#endif
+	u8 state;
 	int i=0;
 	struct touch_info cinfo, pinfo;
 	struct sched_param param = { .sched_priority = RTPM_PRIO_TPD };
@@ -168,6 +308,44 @@ static int touch_event_handler(void *unused)
 #ifdef FTS_GESTRUE
 	if (touch_getsure_event_handler(i2c_client)) continue;
 #endif
+	 #ifdef TPD_PROXIMITY
+
+		 if (tpd_proximity_flag == 1)
+		 {
+
+			i2c_smbus_read_i2c_block_data(i2c_client, 0xB0, 1, &state);
+            TPD_PROXIMITY_DEBUG("proxi_fts 0xB0 state value is 1131 0x%02X\n", state);
+			if(!(state&0x01))
+			{
+				tpd_enable_ps(1);
+			}
+			i2c_smbus_read_i2c_block_data(i2c_client, 0x01, 1, &proximity_status);
+            TPD_PROXIMITY_DEBUG("proxi_fts 0x01 value is 1139 0x%02X\n", proximity_status);
+			if (proximity_status == 0xC0)
+			{
+				tpd_proximity_detect = 0;
+			}
+			else if(proximity_status == 0xE0)
+			{
+				tpd_proximity_detect = 1;
+			}
+
+			TPD_PROXIMITY_DEBUG("tpd_proximity_detect 1149 = %d\n", tpd_proximity_detect);
+			if ((err = tpd_read_ps()))
+			{
+				TPD_PROXIMITY_DMESG("proxi_fts read ps data 1156: %d\n", err);
+			}
+			sensor_data.values[0] = tpd_get_ps_value();
+			sensor_data.value_divide = 1;
+			sensor_data.status = SENSOR_STATUS_ACCURACY_MEDIUM;
+			//if ((err = hwmsen_get_interrupt_data(ID_PROXIMITY, &sensor_data)))
+			//{
+			//	TPD_PROXIMITY_DMESG(" proxi_5206 call hwmsen_get_interrupt_data failed= %d\n", err);
+			//}
+		}
+
+		#endif
+
 
 		TPD_DEBUG("touch_event_handler start \n");
 		if(tpd_touchinfo(i2c_client, &cinfo, &pinfo) == 0)

@@ -1,38 +1,41 @@
 #!/bin/bash
 
+e="\x1b[";c=$e"39;49;00m";y=$e"93;01m";cy=$e"96;01m";r=$e"1;91m";g=$e"92;01m";
+
 export KBUILD_BUILD_USER=rezvorck
 export KBUILD_BUILD_HOST=debian
 export CONFIG_DEBUG_SECTION_MISMATCH=y
 export GCC_VERSION="gcc version 5.3.1 20160412 (linaro) (GCC)"
 
-mkdir ./tools/tools 2>/dev/null
-
 run=$(date +%s)
+
+mkdir ./tools/tools 2>/dev/null
 
 if [ -f arch/arm/boot/zImage-dtb ]
 then
-    echo "Remove kernel..."
+    echo -e "$y >> Remove kernel... $c"
     rm arch/arm/boot/zImage*
 fi
 
-echo "Export toolchains..."
-export ARCH=arm CROSS_COMPILE=../linaro-5.3.1_arm/bin/arm-linux-gnueabi-
+echo -e "$y >> Export toolchain... $c"
+export ARCH=arm && export CROSS_COMPILE=$(tools/auto/toolchain.sh ..)
 
-echo "Make defconfig..."
+echo -e "$y >> Make defconfig... $c"
 make s450m_4g_defconfig >/dev/null
 
-echo "Start build..."
+echo -e "$y >> Start build... $c"
 make -j4 >/dev/null 2>errors_32.log
 
 if [ ! -f arch/arm/boot/zImage-dtb ]
 then
-    echo "BUILD ERRORS!"
+    echo -e "$r Build error! $c"
     echo "$(cat errors_32.log | grep error 2>/dev/null)"
 else
-    echo "Moving..."
     mv arch/arm/boot/zImage-dtb boot_32.img-kernel
-    echo "Finish! Build time: $((($(date +%s) - run)/60)) min."
+    #echo -e "$y >> Creating update.zip... $c"
+    #tools/auto/auto.sh boot recovery
+    echo -e "$g Finish! Build time: $((($(date +%s) - run)/60)) min. $c"
 fi
 
-echo "Press [y] to clean project:"
-while read answer; do [ "$answer" = "y" ] && make ARCH=arm mrproper; break; done
+echo -e "$cy Press [y] to clean project... $c"
+read -s -n1 answer; [ "$answer" = "y" ] && make ARCH=arm mrproper 1>/dev/null 2>/dev/null 
