@@ -18,9 +18,7 @@ static void ft5x0x_set_rst(bool bSet, int nDelay)
 #include "../../../../misc/mediatek/alsps/inc/alsps.h"
 #include <hwmsensor.h>
 #include <hwmsen_dev.h>
-//#include <sensors_io.h>
 #include <hwmsen_helper.h>
-//#include <linux/sensors_io.h>
 #endif
 #ifdef TPD_PROXIMITY
 

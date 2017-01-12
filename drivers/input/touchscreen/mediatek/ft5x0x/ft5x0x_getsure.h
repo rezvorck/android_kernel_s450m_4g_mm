@@ -47,7 +47,7 @@ void tpgesture_hander(void)
 
 static void check_gesture(int gesture_id)
 {	
-    printk("kaka gesture_id==0x%x\n ",gesture_id);
+    //printk("kaka gesture_id==0x%x\n ",gesture_id);
     
 	switch(gesture_id)
 	{
@@ -138,11 +138,11 @@ static int ft5x0x_read_Touchdata(struct i2c_client* i2c_client)
 	ret = fts_i2c_Read(i2c_client, buf, 1, buf, FTS_GESTRUE_POINTS_HEADER);
 	if (ret < 0)
 	{
-		printk( "%s read touchdata failed.\n", __func__);
+		//printk( "%s read touchdata failed.\n", __func__);
 		return ret;
 	}
 
-	printk("%s lsm--buf[0]=%x .\n",__func__,buf[0]);
+	//printk("%s lsm--buf[0]=%x .\n",__func__,buf[0]);
 	if(buf[0] != 0xfe)
 	{
 // pass dblclick
@@ -152,14 +152,14 @@ static int ft5x0x_read_Touchdata(struct i2c_client* i2c_client)
 	}
 
 	pointnum = (short)(buf[1]) & 0xff;
-	printk("%s lsm--pointnum=%d .\n",__func__, pointnum);
+	//printk("%s lsm--pointnum=%d .\n",__func__, pointnum);
 
 	buf[0] = 0xd3;
 	ret = fts_i2c_Read(i2c_client, buf, 1, buf, pointnum * 4 + 2+6);
 	if (ret < 0)
 	{
 //flash_on(1);
-		printk( "%s read touchdata failed.\n", __func__);
+		//printk( "%s read touchdata failed.\n", __func__);
 		return ret;
 	}
 // pass OK
@@ -171,7 +171,7 @@ static int ft5x0x_read_Touchdata(struct i2c_client* i2c_client)
 		    8 | (((s16) buf[1 + (4 * i)])& 0xFF);
 		coordinate_y[i] = (((s16) buf[2 + (4 * i)]) & 0x0F) <<
 		    8 | (((s16) buf[3 + (4 * i)]) & 0xFF);
-printk( "Gesture touch pint x,y=%d,%d\n", coordinate_x[i], coordinate_y[i]);
+//printk( "Gesture touch pint x,y=%d,%d\n", coordinate_x[i], coordinate_y[i]);
 	}
 	check_gesture(gestrue_id);
 	return -1;
@@ -181,7 +181,7 @@ printk( "Gesture touch pint x,y=%d,%d\n", coordinate_x[i], coordinate_y[i]);
 {
  	u8 state;
 	i2c_smbus_read_i2c_block_data(i2c_client, 0xd0, 1, &state);
-	printk("%s lsm--state=%x .\n",__func__,state);
+	//printk("%s lsm--state=%x .\n",__func__,state);
 	if(state !=1) return false;
 
 	ft5x0x_read_Touchdata(i2c_client);
@@ -192,12 +192,12 @@ static bool tpd_getsure_suspend(struct i2c_client* i2c_client)
  {
 	static char data;
 
-	printk("[xy-tp]%d\n", tpgesture_status);
+	//printk("[xy-tp]%d\n", tpgesture_status);
 
 	if((g_call_state == CALL_ACTIVE) || (!tpgesture_status)) 
 		return false;
 
-	printk("[xy-tp]:gesture mode\n");
+	//printk("[xy-tp]:gesture mode\n");
 	msleep(200);
 
 	data	= 0x01;
@@ -229,13 +229,13 @@ static bool tpd_getsure_resume(struct i2c_client* i2c_client)
 
 static ssize_t show_tpgesture_value(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	 printk("show tp gesture value is %s \n", tpgesture_value);
+	 //printk("show tp gesture value is %s \n", tpgesture_value);
 	 return sprintf(buf, "%s\n", tpgesture_value);
 }
  
 static ssize_t show_tpgesture_status_value(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	 printk("show tp gesture status is %s\n", tpgesture_status_value);
+	 //printk("show tp gesture status is %s\n", tpgesture_status_value);
 	 return sprintf(buf, "%s\n", tpgesture_status_value);
 }
  

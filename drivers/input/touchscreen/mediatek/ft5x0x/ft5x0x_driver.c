@@ -61,19 +61,18 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		    tpd_load_status = 1;
 
 			TPD_DMESG("Touch Panel Device Probe %s\n", (retval < 0) ? "FAIL" : "PASS");
+			#ifdef TPD_PROXIMITY
+				struct hwmsen_object obj_ps;
+				obj_ps.polling = 0;	/* 0--interrupt mode;1--polling mode; */
+				obj_ps.sensor_operate = tpd_ps_operate;
+				s32 err_hw = hwmsen_attach(ID_PROXIMITY, &obj_ps);
+				if (err_hw)
+					TPD_DEBUG("hwmsen attach fail, return:%d.", err_hw);
+			#endif
 			return 0;
 		}
 		TPD_DMESG("I2C transfer error, line: %d\n", __LINE__);
 	};
-
-#ifdef TPD_PROXIMITY
-	struct hwmsen_object obj_ps;
-	obj_ps.polling = 0;	/* 0--interrupt mode;1--polling mode; */
-	obj_ps.sensor_operate = tpd_ps_operate;
-	s32 err_hw = hwmsen_attach(ID_PROXIMITY, &obj_ps);
-	if (err_hw)
-		TPD_DEBUG("hwmsen attach fail, return:%d.", err_hw);
-#endif
 
 	return -1;
 }
