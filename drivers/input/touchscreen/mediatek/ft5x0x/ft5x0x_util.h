@@ -336,10 +336,10 @@ static int touch_event_handler(void *unused)
 			sensor_data.values[0] = tpd_get_ps_value();
 			sensor_data.value_divide = 1;
 			sensor_data.status = SENSOR_STATUS_ACCURACY_MEDIUM;
-			//if ((err = hwmsen_get_interrupt_data(ID_PROXIMITY, &sensor_data)))
-			//{
-			//	TPD_PROXIMITY_DMESG(" proxi_5206 call hwmsen_get_interrupt_data failed= %d\n", err);
-			//}
+			if ((err = hwmsen_get_interrupt_data(ID_PROXIMITY, &sensor_data)))
+			{
+				TPD_PROXIMITY_DMESG(" proxi_5206 call hwmsen_get_interrupt_data failed= %d\n", err);
+			}
 		}
 
 		#endif
