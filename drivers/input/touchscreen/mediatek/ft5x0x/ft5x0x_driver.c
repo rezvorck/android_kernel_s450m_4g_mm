@@ -157,10 +157,10 @@ static void tpd_suspend(struct device *h)
 {
 	static char data;
 
-//#ifdef FTS_GESTRUE
-//	if (tpd_getsure_suspend(i2c_client)) return;
-//#endif
-	return;
+#ifdef FTS_GESTRUE
+	if (tpd_getsure_suspend(i2c_client)) return;
+#endif
+	//return;
 
 	TPD_DEBUG("TPD enter sleep\n");
 	data = 0x3;

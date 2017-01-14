@@ -2,6 +2,13 @@
 
 dir=$PWD
 
+mkdir $(dirname $0)/boot/$ARCH/ramdisk/data 2>/dev/null
+mkdir $(dirname $0)/boot/$ARCH/ramdisk/dev 2>/dev/null
+mkdir $(dirname $0)/boot/$ARCH/ramdisk/oem 2>/dev/null
+mkdir $(dirname $0)/boot/$ARCH/ramdisk/proc 2>/dev/null
+mkdir $(dirname $0)/boot/$ARCH/ramdisk/sys 2>/dev/null
+mkdir $(dirname $0)/boot/$ARCH/ramdisk/system 2>/dev/null
+
 case "$ARCH" in
 arm64) 
  [ -f "arch/arm64/boot/Image.gz-dtb" ] && [ "$(echo $@ | grep boot)" ] && cp arch/arm64/boot/Image.gz-dtb $(dirname $0)/boot/arm64/boot.img-kernel && $(dirname $0)/repack.sh boot
