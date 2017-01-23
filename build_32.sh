@@ -31,9 +31,8 @@ then
     echo -e "$r Build error! $c"
     echo "$(cat errors_32.log | grep error 2>/dev/null)"
 else
-    mv arch/arm/boot/zImage-dtb boot_32.img-kernel
-    #echo -e "$y >> Creating update.zip... $c"
-    #tools/auto/auto.sh boot recovery
+    echo -e "$y >> Creating update.zip... $c"
+    tools/auto/auto.sh boot recovery
     echo -e "$g Finish! Build time: $((($(date +%s) - run)/60)) min. $c"
 fi
 

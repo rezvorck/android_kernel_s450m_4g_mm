@@ -62,7 +62,7 @@ static imgsensor_info_struct imgsensor_info = {
 		/*	 following for MIPIDataLowPwr2HighSpeedSettleDelayCount by different scenario	*/
 		.mipi_data_lp2hs_settle_dc = 20,
 		/*	 following for GetDefaultFramerateByScenario()	*/
-		.max_framerate = 300,	
+		.max_framerate = 240, //300	
 	},
 	.cap = {
 		.pclk = 12000000,
@@ -73,7 +73,7 @@ static imgsensor_info_struct imgsensor_info = {
 		.grabwindow_width = 640,
 		.grabwindow_height = 480,
 		.mipi_data_lp2hs_settle_dc = 20,
-		.max_framerate = 300,
+		.max_framerate = 240, //300
 	},
 	.cap1 = {
 		.pclk = 12000000,
@@ -84,7 +84,7 @@ static imgsensor_info_struct imgsensor_info = {
 		.grabwindow_width = 640,
 		.grabwindow_height = 480,
 		.mipi_data_lp2hs_settle_dc = 20,
-		.max_framerate = 300,
+		.max_framerate = 240, //300
 	},
 	.normal_video = {
 		.pclk = 12000000,
@@ -95,7 +95,7 @@ static imgsensor_info_struct imgsensor_info = {
 		.grabwindow_width = 640,
 		.grabwindow_height = 480,
 		.mipi_data_lp2hs_settle_dc = 20,
-		.max_framerate = 300,
+		.max_framerate = 240, //300
 	},
 	.hs_video = {
 		.pclk = 12000000,
@@ -106,7 +106,7 @@ static imgsensor_info_struct imgsensor_info = {
 		.grabwindow_width = 640,
 		.grabwindow_height = 480,
 		.mipi_data_lp2hs_settle_dc = 20,
-		.max_framerate = 300,
+		.max_framerate = 240, //300
 	},
 	.slim_video = {
 		.pclk = 12000000,
@@ -117,7 +117,7 @@ static imgsensor_info_struct imgsensor_info = {
 		.grabwindow_width = 640,
 		.grabwindow_height = 480,
 		.mipi_data_lp2hs_settle_dc = 20,
-		.max_framerate = 300,
+		.max_framerate = 240, //300
 	},
 
 	.margin = 0,
@@ -154,7 +154,7 @@ static imgsensor_struct imgsensor = {
 	.gain = 0x40,						//current gain
 	.dummy_pixel = 0,//106,					//current dummypixel
 	//.dummy_line = 0,//12,					//current dummyline
-	.current_fps = 300,  //full size current fps : 24fps for PIP, 30fps for Normal or ZSD
+	.current_fps = 240,  //300 full size current fps : 24fps for PIP, 30fps for Normal or ZSD
 	.autoflicker_en = KAL_FALSE,  //auto flicker enable: KAL_FALSE for disable auto flicker, KAL_TRUE for enable auto flicker
     	.test_pattern = KAL_FALSE,      //test pattern mode or not. KAL_FALSE for in test pattern mode, KAL_TRUE for normal output
 	.current_scenario_id = MSDK_SCENARIO_ID_CAMERA_PREVIEW,//current scenario id
@@ -439,9 +439,9 @@ static void sensor_init(void)
 	write_cmos_sensor(0x6c,0xaa);
 	write_cmos_sensor(0x6d,0x00);
 	write_cmos_sensor(0x67,0x10);
-	write_cmos_sensor(0x4a,0x40);
-	write_cmos_sensor(0x4b,0x40);
-	write_cmos_sensor(0x4c,0x40);
+	write_cmos_sensor(0x4a,0x10);//40 red
+	write_cmos_sensor(0x4b,0x30);//40 green
+	write_cmos_sensor(0x4c,0x28);//40 blue
 	write_cmos_sensor(0xe8,0x04);
 	write_cmos_sensor(0xe9,0xbb);
 	write_cmos_sensor(0x42,0x20);

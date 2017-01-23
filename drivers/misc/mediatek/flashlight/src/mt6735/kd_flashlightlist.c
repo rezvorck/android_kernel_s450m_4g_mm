@@ -278,6 +278,7 @@ static int decFlash(void)
 	return 0;
 }
 */
+
 static int closeFlash(void)
 {
 	int i;
@@ -301,6 +302,7 @@ static int closeFlash(void)
 	}
 	return 0;
 }
+
 
 /* @@{ */
 

@@ -107,6 +107,7 @@ int FL_Enable(void)
 int FL_Disable(void)
 {
 	PK_DBG(" FL_Disable line=%d\n", __LINE__);
+	msleep(500);
 	mt_brightness_set_pmic(1, 0, 0);
 	//mt_set_gpio_out(FLASH_GPIO, GPIO_OUT_ZERO);
 	return 0;
